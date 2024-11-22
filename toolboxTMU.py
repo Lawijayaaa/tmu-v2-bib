@@ -192,8 +192,6 @@ def dataParser(getTemp, getElect1, getElect2, getElect3, getH2, getMoist, dataLe
     #parse getTemp
     try:
         outputData[36:39] = [(0 if member > 2400 else member/10) for member in getTemp.registers] #Busbar Temp
-        #print("Temp")
-        #print(outputData[38:41])
     except:
         pass
     #parse getElect1
@@ -236,7 +234,7 @@ def dataParser(getTemp, getElect1, getElect2, getElect3, getH2, getMoist, dataLe
     try:
         outputData[51] = getH2.registers[0] #H2 ppm
         outputData[52] = getMoist.registers[2] #Water Content ppm
-        outputData[39] = (getMoist.registers[0])/10
+        outputData[39] = (getMoist.registers[0])/10 #Top Oil Temp.
     except:
         pass
     #Exhibition only
@@ -404,6 +402,7 @@ class sqlLibrary():
     sqlLastFailure = "SELECT * FROM failure_log ORDER BY failure_id DESC LIMIT 1"
     sqlResolveFailure = "UPDATE failure_log SET duration = %s WHERE failure_id = %s"
     sqlUpdateTrafoStat = "UPDATE transformer_data SET status = %s WHERE trafoId = 1"
+    sqlUpdateTapPos = "UPDATE transformer_data SET impedance = %s WHERE trafoId = 1"
     sqlUpdateTransformerStatus = """UPDATE transformer_status SET 
                     Vab = %s , Vbc = %s , Vca = %s ,
                     Current1 = %s , Current2 = %s , Current3 = %s , Ineutral = %s ,

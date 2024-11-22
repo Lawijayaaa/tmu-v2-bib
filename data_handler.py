@@ -8,8 +8,8 @@ from requests.models import StreamConsumedError
 from requests.exceptions import Timeout
 import random
 
-engineName = " Trafo 1 "
-teleURL = 'http://192.168.133.190:1444/api/transformer/sendNotificationToTelegramGroup'
+engineName = "Trafo 1"
+teleURL = 'http://192.168.8.113:1444/api/transformer/sendNotificationToTelegramGroup'
 progStat = True
 debugMsg = False
 infoMsg = True
@@ -38,10 +38,10 @@ def main():
     #init logger rawdata
     ts = time.strftime("%Y%m%d")
     pathStr = r'/home/pi/tmu/tmu-app-client-deploy/assets/datalog/rawdata/datalogger-'
-    pathDatLog = pathStr + ts + engineName + '.xlsx'
+    pathDatLog = pathStr + ts + '.xlsx'
     sheetName = ["Harmonic_phR", "Harmonic_phS", "Harmonic_phT"]
-    pathBkup = r'/home/pi/tmu-v2-smart/assets/rawdata Test/backup/datalogger-backup-'
-    pathDatBkup = pathBkup + ts + engineName + '.xlsx'
+    pathBkup = r'/home/pi/tmu-v2-bib/assets/rawdata Test/backup/datalogger-backup-'
+    pathDatBkup = pathBkup + ts + '.xlsx'
      
     try:
         wb = openpyxl.load_workbook(pathDatLog)
@@ -66,7 +66,7 @@ def main():
                     'WTITemp-u', 'WTITemp-v', 'WTITemp-w',  'Press', 'Level',
                     'KRated-u', 'Derating-u', 'KRated-v', 'Derating-v', 'KRated-w', 'Derating-w',
                     'H2ppm', 'Moistppm', 'Vdiff-uv', 'Vdiff-vw', 'Vdiff-uw',
-                    'trafoStatus', 'DIstat', 'DOstat', 'Alarm', 'Trip1', 'Trip2'),)
+                    'trafoStatus', 'DIstat', 'DOstat', 'Alarm', 'Trip1', 'Trip2', 'Tap Position'),)
         for row in name:
             sheet.append(row)
         for member in sheetName:
@@ -116,7 +116,6 @@ def main():
     for i in range(0, len(listFailure)):
         if listFailure[i][2] == None:
             activeFailure[activeFailure.index(None)] = listFailure[i]
-    #print(activeFailure)
     
     if infoMsg == True: print("1D|Start Loop")
     while progStat:
@@ -138,6 +137,8 @@ def main():
         prevStat = list(cursor.fetchall()[0][1:])
         cursor.execute(sqlLibrary.sqlTripStatus)
         prevTrip = list(cursor.fetchall()[0][1:])
+        OLTCstat = inputIO[7][2]
+        cursor.execute(sqlLibrary.sqlUpdateTapPos, OLTCstat)
         db.commit()
         CTratio = trafoData[26]
 
@@ -163,13 +164,9 @@ def main():
         getHarmI = client.read_holding_registers(896, 90, slave = 2)
         
         getH2 = client2.read_holding_registers(0, 1, slave = 4)
-        #getH2 = 0
         getMoist = client2.read_input_registers(0, 3, slave = 5)
-        #getMoist = 0
         oilLevelAlarm = inputIO[4][2]
         oilLevelTrip = inputIO[5][2]
-        OLTCstat = inputIO[7][2]
-        print(OLTCstat)
         
         if (oilLevelAlarm and oilLevelTrip) or oilLevelTrip:
             oilStat = 1
@@ -179,18 +176,11 @@ def main():
             oilStat = 3
         if debugMsg == True: print("1D|5 Parse Data")
         inputData = dataParser(getTemp, getElect1, getElect2, getElect3, getH2, getMoist, dataLen, CTratio, PTratio)
-        #print(getMoist.registers[0])
-        #inputData[39] = (getMoist.registers[0])/10
         inputData[43] = 0 #Pressure
         #Exhibition only
         #inputData[39] = (random.randint(3500, 5000))/100 #Oil Temp
         #inputData[43] = (random.randint(10, 25))/100 #Pressure
         inputData[44] = oilStat
-        #test parameter
-        #inputData[4] = 430
-        #inputData[32] = 1
-        #inputData[53] = inputData[55] = 0
-        #inputData[14] = 5
         if debugMsg == True: print("1D|6 Calculate WTI")
         for i in range(0, 3): loadFactor[i] = (inputData[i + 6])/trafoData[6]
         for i in range(0, 3):
@@ -325,7 +315,7 @@ def main():
 
             telePrevTime = datetime.datetime.now()
         #print(inputData)
-        if int((datetime.datetime.now() - excelPrevTime).total_seconds()) > 5:
+        if int((datetime.datetime.now() - excelPrevTime).total_seconds()) > 3:
             if debugMsg == True: print("1D|12A Routine Add data to work stage excel")
             for i in range(0, 3):
                 sendHarm = [datetime.datetime.now().strftime("%H:%M:%S")] + inputHarmonicV[i] + inputHarmonicI[i]
@@ -333,7 +323,7 @@ def main():
                 sheetHarm = wb[sheetName[i]]
                 for row in sendHarm:
                     sheetHarm.append(row)
-            sendLog = [datetime.datetime.now().strftime("%H:%M:%S")] + inputData + [maxStat] + binList
+            sendLog = [datetime.datetime.now().strftime("%H:%M:%S")] + inputData + [maxStat] + binList + OLTCstat
             sendLog = ((tuple(sendLog)),)
             sheet = wb["Raw_data"]
             for row in sendLog:
