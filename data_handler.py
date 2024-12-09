@@ -26,7 +26,7 @@ def main():
     cycleTime = 2 / 60
     
     client = ModbusSerialClient(method='rtu', port='/dev/ttyACM0', baudrate=9600)
-    client2 = ModbusSerialClient(method='rtu', port='/dev/ttyUSB0', baudrate=9600)
+    client2 = ModbusSerialClient(method='rtu', port='/dev/ttyUSB1', baudrate=9600)
     
     db = mysql.connector.connect(
         host = "localhost",
@@ -138,7 +138,7 @@ def main():
         cursor.execute(sqlLibrary.sqlTripStatus)
         prevTrip = list(cursor.fetchall()[0][1:])
         OLTCstat = inputIO[7][2]
-        cursor.execute(sqlLibrary.sqlUpdateTapPos, OLTCstat)
+        cursor.execute(sqlLibrary.sqlUpdateTapPos, (OLTCstat,))
         db.commit()
         CTratio = trafoData[26]
 
@@ -323,7 +323,7 @@ def main():
                 sheetHarm = wb[sheetName[i]]
                 for row in sendHarm:
                     sheetHarm.append(row)
-            sendLog = [datetime.datetime.now().strftime("%H:%M:%S")] + inputData + [maxStat] + binList + OLTCstat
+            sendLog = [datetime.datetime.now().strftime("%H:%M:%S")] + inputData + [maxStat] + binList + [OLTCstat]
             sendLog = ((tuple(sendLog)),)
             sheet = wb["Raw_data"]
             for row in sendLog:
