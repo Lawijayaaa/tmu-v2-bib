@@ -11,7 +11,7 @@ import random
 engineName = "Trafo 1"
 teleURL = 'http://192.168.8.113:1444/api/transformer/sendNotificationToTelegramGroup'
 progStat = True
-debugMsg = False
+debugMsg = True
 infoMsg = True
 
 def main():
@@ -26,7 +26,7 @@ def main():
     cycleTime = 2 / 60
     
     client = ModbusSerialClient(method='rtu', port='/dev/ttyACM0', baudrate=9600)
-    client2 = ModbusSerialClient(method='rtu', port='/dev/ttyUSB1', baudrate=9600)
+    client2 = ModbusSerialClient(method='rtu', port='/dev/ttyUSB0', baudrate=9600)
     
     db = mysql.connector.connect(
         host = "localhost",
@@ -149,11 +149,14 @@ def main():
                     activeParam[i] = activeFailure[i][4]
         
         if debugMsg == True: print("1D|3 Update status Relay")
+        time.sleep(2)
+        """
         for i in range(0, 5):
             if outputIO[i][2] == 1:
                 client.write_coil(i, True, slave = 1)
             elif outputIO[i][2] == 0:
                 client.write_coil(i, False, slave = 1)
+                """
                 
         if debugMsg == True: print("1D|4 Read Modbus Slave")
         getTemp = client.read_holding_registers(4, 3, slave = 3)
