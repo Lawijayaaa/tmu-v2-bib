@@ -11,7 +11,7 @@ import random
 engineName = "Trafo 1"
 teleURL = 'http://192.168.8.113:1444/api/transformer/sendNotificationToTelegramGroup'
 progStat = True
-debugMsg = True
+debugMsg = False
 infoMsg = True
 
 def main():

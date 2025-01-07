@@ -41,11 +41,11 @@ def dataStore(data):
     for i in range(29, 33):
         data[i] = round(data[i]*1000)
         storage[i*2 + 1], storage[i*2] = signed32bit(data[i])
-    for i in range(33, 46):
+    for i in range(33, 45):
         data[i] = round(data[i]*1000)
         storage[i*2 + 1], storage[i*2] = unsigned32bit(data[i])
-    for i in range(46, len(data)):
-        storage[i+46] = round(data[i]*100)
+    for i in range(45, 53):
+        storage[i+45] = round(data[i])
     return storage
 
 def gatherValues():
@@ -113,8 +113,8 @@ async def update_register_values():
     while True:
         new_values = gatherValues()
         store.setValues(3, 0, new_values)  # 3 = Holding Register
-        #log.debug(f"register values updated: {new_values}")
-        log.debug(f"register values updated")
+        log.debug(f"register values updated: {new_values}")
+        #log.debug(f"register values updated")
         await asyncio.sleep(2)
 
 # Identifikasi perangkat
