@@ -9,7 +9,7 @@ from requests.exceptions import Timeout
 import random
 
 engineName = "Trafo 1"
-teleURL = 'http://192.168.8.113:1444/api/transformer/sendNotificationToTelegramGroup'
+teleURL = 'http://172.20.150.218:1444/api/transformer/sendNotificationToTelegramGroup'
 progStat = True
 debugMsg = False
 infoMsg = True
